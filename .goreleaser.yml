@@ -6,6 +6,9 @@ release:
   name_template: '{{.Tag}}'
   draft: false
 brew:
+  github:
+    owner: embano1
+    name: homebrew-tw
   commit_author:
     name: goreleaserbot
     email: embano1@live.com
