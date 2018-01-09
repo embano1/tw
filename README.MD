@@ -11,7 +11,15 @@ Please keep ideas and bugs coming (file an Issue).
 Download a release for `OSX`, `Windows` and `Linux` from the [Releases](https://github.com/embano1/tw/releases) page.
 
 ## Docker
-`docker pull embano1/tw`
+```bash
+$ docker pull embano1/tw
+```
+
+## Homebrew 🍺
+```bash
+# Tap tw repository and install
+$ brew install embano1/tw/tw
+```
 
 ## Build
 Requires a working [go](https://golang.org/) environment and `$GOPATH` set.
