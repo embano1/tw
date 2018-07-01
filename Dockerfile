@@ -22,10 +22,10 @@ RUN set -x \
 	&& rm -rf /go \
 	&& echo "Build complete."
 
-FROM scratch
+FROM alpine:3.6
+RUN apk add --no-cache jq
 
 COPY --from=builder /usr/bin/tw /usr/bin/tw
 COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs
 
-ENTRYPOINT [ "tw" ]
-CMD [ "--help" ]
+CMD [ "tw", "--help" ]

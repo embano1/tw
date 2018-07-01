@@ -39,18 +39,25 @@ After you downloaded a release and with authentication set up:
 ```bash
 # OSX/ Linux Quick start with your credentials in <HOME>/auth.json
 $ ./tw likes -f ~/auth.json -p
-...
+(...)
 ```
 
 Or with `Docker` installed:
 ```bash
 # Quick start with your credentials in <HOME>/auth.json
-$ docker run --rm -v ~/auth.json:/auth.json embano1/tw -f /auth.json -p likes
-...
+$ docker run --rm -it -v ~/auth.json:/auth.json embano1/tw tw -f /auth.json -p likes
+(...)
 
 # If you have a JSON parser like 'jq' installed, this works as well
-$ docker run --rm -v ~/auth.json:/auth.json embano1/tw -f /auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text,.entities.urls[].expanded_url'
-...
+# Running without "-it" because this could mess up JSON printing on the CLI
+$ docker run --rm -v ~/auth.json:/auth.json embano1/tw tw -f /auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text,.entities.urls[].expanded_url'
+(...)
+
+# If you don't have a JSON parser installed, use the one provided in the image
+$ docker run --rm -it -v ~/auth.json:/auth.json embano1/tw sh
+# Now inside the container...
+/ tw -f /auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text,.entities.urls[].expanded_url'
+(...)
 ```
 
 ## Help and Flags
