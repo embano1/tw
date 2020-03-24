@@ -15,4 +15,4 @@ jobs:
         stale-pr-label: 'stale'
         days-before-stale: 60
         days-before-close: 5
-        main: 'lib/main.js'%
+        main: 'lib/main.js'
