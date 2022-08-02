@@ -8,6 +8,8 @@ github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 h1:s6gZFSlWYmbqAu
 github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137/go.mod h1:OMCwj8VM1Kc9e19TLln2VL61YJF0x1XFtfdL4JdbSyE=
 github.com/azr/backoff v0.0.0-20160115115103-53511d3c7330 h1:ekDALXAVvY/Ub1UtNta3inKQwZ/jMB/zpOtD8rAYh78=
 github.com/azr/backoff v0.0.0-20160115115103-53511d3c7330/go.mod h1:nH+k0SvAt3HeiYyOlJpLLv1HG1p7KWP7qU9QPp2/pCo=
+github.com/carlmjohnson/versioninfo v0.22.4 h1:AucUHDSKmk6j7Yx3dECGUxaowGHOAN0Zx5/EBtsXn4Y=
+github.com/carlmjohnson/versioninfo v0.22.4/go.mod h1:QT9mph3wcVfISUKd0i9sZfVrPviHuSF+cUtLjm2WSf8=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dustin/go-jsonpointer v0.0.0-20160814072949-ba0abeacc3dc h1:tP7tkU+vIsEOKiK+l/NSLN4uUtkyuxc6hgYpQeCWAeI=

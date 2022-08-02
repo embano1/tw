@@ -1,60 +1,73 @@
 # What does it?
-It turned out that it's not just me who (ab)uses the Twitter `Like` button for a "read later" list :)  
-`tw` is a very basic Twitter client to query your Likes, and do some powerful JSON filtering (see examples below). 
+
+It turned out that it's not just me who (ab)uses the Twitter `Like` button for a
+"read later" list :)  
+
+`tw` is a very basic Twitter client to query your Likes, and do some powerful
+JSON filtering (see examples below). 
 
 Currently, only `Likes` can be queried. `tw` is expandable though ;)
 
 Please keep ideas and bugs coming (file an Issue).
 
 # Get it
+
 ## Releases (Binaries)
-Download a release for `OSX`, `Windows` and `Linux` from the [Releases](https://github.com/embano1/tw/releases) page.
+
+Download a release for `OSX`, `Windows` and `Linux` from the
+[Releases](https://github.com/embano1/tw/releases) page.
 
 ## Docker
+
 ```bash
-$ docker pull embano1/tw
+docker pull embano1/tw
 ```
 
 ## Homebrew 🍺
+
 ```bash
 # Tap tw repository and install
-$ brew install embano1/tw/tw
+brew install embano1/tw/tw
 ```
 
 ## Build
-Requires a working [go](https://golang.org/) environment and `$GOPATH` set.
+
+Requires a working [go](https://golang.org/) environment.
 
 ```bash
-$ go get -v -d -u github.com/embano1/tw
-$ cd $GOPATH/src/github.com/embano1/tw
+git clone https://github.com/embano1/tw
+cd tw
+
 # Builds a static binary for your GOOS
-$ make
+make
 ```
 
 # Usage 
-**Note**  
-You first need to set up authentication, see "Authentication" section below.
+
+> **Note**  You first need to set up authentication, see "Authentication" section below.
 
 After you downloaded a release and with authentication set up:
+
 ```bash
 # OSX/ Linux Quick start with your credentials in <HOME>/auth.json
-$ ./tw likes -f ~/auth.json -p
+./tw likes -f ~/auth.json -p
 (...)
 ```
 
 Or with `Docker` installed:
+
 ```bash
 # Quick start with your credentials in <HOME>/auth.json
-$ docker run --rm -it -v ~/auth.json:/auth.json embano1/tw tw -f /auth.json -p likes
+docker run --rm -it -v ~/auth.json:/auth.json embano1/tw tw -f /auth.json -p likes
 (...)
 
 # If you have a JSON parser like 'jq' installed, this works as well
 # Running without "-it" because this could mess up JSON printing on the CLI
-$ docker run --rm -v ~/auth.json:/auth.json embano1/tw tw -f /auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text,.entities.urls[].expanded_url'
+docker run --rm -v ~/auth.json:/auth.json embano1/tw tw -f /auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text,.entities.urls[].expanded_url'
 (...)
 
 # If you don't have a JSON parser installed, use the one provided in the image
-$ docker run --rm -it -v ~/auth.json:/auth.json embano1/tw sh
+docker run --rm -it -v ~/auth.json:/auth.json embano1/tw sh
 # Now inside the container...
 / tw -f /auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text,.entities.urls[].expanded_url'
 (...)
@@ -62,7 +75,7 @@ $ docker run --rm -it -v ~/auth.json:/auth.json embano1/tw sh
 
 ## Help and Flags
 ```
-$ ./tw --help                                                                    
+./tw --help                                                                    
 usage: tw [<flags>] <command> [<args> ...]
 
 
@@ -98,35 +111,41 @@ Commands:
 # Filtering with `jq`
 
 > [jq](https://stedolan.github.io/jq/) is like sed for JSON data.  
-> You can use it to slice and filter and map and transform structured data with the same ease that sed, awk, grep and friends let you play with text.
+> You can use it to slice and filter and map and transform structured data with
+> the same ease that sed, awk, grep and friends let you play with text.
 >
-> [Tutorial](https://stedolan.github.io/jq/tutorial/) and [Manual](https://stedolan.github.io/jq/manual/)
+> [Tutorial](https://stedolan.github.io/jq/tutorial/) and
+> [Manual](https://stedolan.github.io/jq/manual/)
 
 ## Examples
 
 ```bash
 # Nicer JSON output
-$ ./tw -f auth.json likes | jq '.'    
+./tw -f auth.json likes | jq '.'    
 
 # Count number of your likes
-$ ./tw -f auth.json likes | jq '[.[].id]|length'    
+./tw -f auth.json likes | jq '[.[].id]|length'    
 
 # Query links in your likes
-$ ./tw -f auth.json likes | jq '.[].entities.urls[].expanded_url'  
+./tw -f auth.json likes | jq '.[].entities.urls[].expanded_url'  
 
 # Print username and Tweet text
-$ ./tw -f auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text'  
+./tw -f auth.json likes | jq '.[]|"---------",.user.screen_name,.full_text'  
 ```
 
 # Authentication
 
-This application uses Oauthv1 to securely authenticate requests. You can obtain API credentials from https://apps.twitter.com/. See below for a detailed description.  
+This application uses OAuthv1 to securely authenticate requests. You can obtain
+API credentials from https://apps.twitter.com/. See below for a detailed
+description.
+
 **Always handle secrets carefully!**
 
 ## Authenticate `tw` via File 
+
 ```bash
 # Create auth.json file in the 'tw' folder, e.g. on Linux/ OSX
-$ touch auth.json
+touch auth.json
 ```
 
 Copy and paste everything below into `auth.json` (replace values with your own).
@@ -143,35 +162,23 @@ Copy and paste everything below into `auth.json` (replace values with your own).
 Test it...
 
 ```bash
-$ ./twfaves -f auth.json -p
-```
-
-## Authenticate `tw` via Environment Variables
-```bash
-# OSX/ Linux
-export TW_CONSUMER_KEY=AAAAAAAAAAAAAAAAAAAAA
-export TW_CONSUMER_SECRET=AAAAAAAAAAAAAAAAAAAAA
-export TW_ACCESS_TOKEN=1234567-AAAAAAAAAAAAAAAAAAAAA
-export TW_TOKEN_SECRET=AAAAAAAAAAAAAAAAAAAAA
-```
-
-Test it...
-
-```bash
-$ ./twfaves -p
+./twfaves -f auth.json -p
 ```
 
 ## Step-by-Step Guide to create Authorization Credentials
 
-Log in at [https://apps.twitter.com](https://apps.twitter.com) your Twitter account. Select `Create New App`.
+Log in at [https://apps.twitter.com](https://apps.twitter.com) your Twitter
+account. Select `Create New App`.
 
 <img src="./img/twa-1.png" alt="twa-1" style="width: 800px;"/>
 
-Insert application details. Note: the name must be a unique (not already taken), e.g. append a number.
+Insert application details. Note: the name must be a unique (not already taken),
+e.g. append a number.
 
 <img src="./img/twa-2.png" alt="twa-2" style="width: 800px;"/>
 
-Create application and click on `Key and Access Tokens`. Bonus point: reduce permissions to `Read Only` (`tw` does not require write access).
+Create application and click on `Key and Access Tokens`. Bonus point: reduce
+permissions to `Read Only` (`tw` does not require write access).
 
 <img src="./img/twa-3.png" alt="twa-3" style="width: 800px;"/>
 
@@ -181,7 +188,7 @@ Now click `Create my access token`.
 
 <img src="./img/twa-5.png" alt="twa-5" style="width: 800px;"/>
 
-Use `Consumer Key`, `Consumer Secret`, `Access Token`, and `Access Token Secret` in your auth.json file or set the corresponding environment variables. 
+Use `Consumer Key`, `Consumer Secret`, `Access Token`, and `Access Token Secret`
+in your auth.json file or set the corresponding environment variables. 
 
 <img src="./img/twa-6.png" alt="twa-6" style="width: 800px;"/>
-

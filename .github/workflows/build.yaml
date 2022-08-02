@@ -23,10 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -34,7 +34,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           # no push
-          args: release --rm-dist --snapshot --release-notes RELEASE_CHANGELOG.md
+          args: release --rm-dist --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

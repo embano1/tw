@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
@@ -11,23 +11,84 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/ChimeraCoder/anaconda"
+	"github.com/carlmjohnson/versioninfo"
 	"github.com/gernest/wow"
 	"github.com/gernest/wow/spin"
 )
 
-var version string
-var commit string
-var date string
-
-type secret struct {
+type credentials struct {
 	ConsumerKey       string `json:"Consumer_Key"`
 	ConsumerSecret    string `json:"Consumer_Secret"`
 	AccessToken       string `json:"Access_Token"`
 	AccessTokenSecret string `json:"Access_Token_Secret"`
 }
 
-func getLikes(a *anaconda.TwitterApi, pretty *bool) ([]anaconda.Tweet, error) {
+func main() {
+	app := kingpin.New("tw", usage()).
+		Version(versioninfo.Short()).
+		DefaultEnvars().
+		ErrorWriter(os.Stderr).
+		UsageWriter(os.Stdout)
 
+	app.HelpFlag.Short('h')
+	app.VersionFlag.Short('v')
+	file := app.Flag("file", "Path to a JSON file containing auth credentials").Short('f').String()
+	pretty := app.Flag("pretty", "Pretty print instead of JSON (default: JSON)").Short('p').Bool()
+
+	// Sub-commands
+	likes := app.Command("likes", "Get your likes")
+
+	// Parse flags
+	command := kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	c, err := readCredentials(file)
+	if err != nil {
+		app.Fatalf("could not read credentials: %v", err)
+	}
+
+	anaconda.SetConsumerKey(c.ConsumerKey)
+	anaconda.SetConsumerSecret(c.ConsumerSecret)
+	client := anaconda.NewTwitterApi(c.AccessToken, c.AccessTokenSecret)
+
+	var searchResult []anaconda.Tweet
+
+	switch command {
+	case likes.FullCommand():
+		searchResult, err = getLikes(client, pretty)
+		if err != nil {
+			app.Fatalf("could not get tweets: %v", err)
+		}
+	default:
+		app.FatalUsage("unknown command")
+	}
+
+	if err := printTweets(os.Stdout, searchResult, *pretty); err != nil {
+		app.Fatalf("could not print tweets: %v", err)
+	}
+
+}
+
+func printTweets(out io.Writer, tweets []anaconda.Tweet, pretty bool) error {
+	if !pretty {
+		if err := json.NewEncoder(out).Encode(tweets); err != nil {
+			return fmt.Errorf("encode tweets to json: %w", err)
+		}
+		return nil
+	}
+
+	for _, tweet := range tweets {
+		fmt.Fprintln(out, "-----------------------")
+		fmt.Fprintf(out, "From: %s\n", tweet.User.ScreenName)
+		fmt.Fprintf(out, "Text: %q\n", tweet.Text)
+		for _, u := range tweet.Entities.Urls {
+			fmt.Fprintf(out, "Link: %s\n", u.Expanded_url)
+		}
+	}
+
+	return nil
+}
+
+func getLikes(a *anaconda.TwitterApi, pretty *bool) ([]anaconda.Tweet, error) {
 	// https://api.twitter.com/1.1
 	// Specifies the number of Tweets to try and retrieve, up to a maximum of 200 per distinct request.
 	// The value of count is best thought of as a limit to the number of Tweets to return
@@ -67,105 +128,36 @@ func getLikes(a *anaconda.TwitterApi, pretty *bool) ([]anaconda.Tweet, error) {
 	return fav, nil
 }
 
-func newCreds(f *string) (*secret, error) {
-	s := &secret{}
+func readCredentials(f *string) (credentials, error) {
+	s := credentials{}
 
-	// Check if env vars are set if no credentials file provided and fail early
-	if *f == "" {
-		if v := os.Getenv("TW_CONSUMER_KEY"); v != "" {
-			s.ConsumerKey = v
-		} else {
-			return nil, errors.New("Environment variable TW_CONSUMER_KEY not set. Set variable or provide a credentials file (-f)")
-		}
+	file, err := os.Open(*f)
+	if err != nil {
+		return s, fmt.Errorf("open file: %w", err)
+	}
 
-		if v := os.Getenv("TW_CONSUMER_SECRET"); v != "" {
-			s.ConsumerSecret = v
-		} else {
-			return nil, errors.New("Environment variable TW_CONSUMER_SECRET not set. Set variable or provide a credentials file (-f)")
-		}
-
-		if v := os.Getenv("TW_ACCESS_TOKEN"); v != "" {
-			s.AccessToken = v
-		} else {
-			return nil, errors.New("Environment variable TW_ACCESS_TOKEN not set. Set variable or provide a credentials file (-f)")
-		}
-
-		if v := os.Getenv("TW_TOKEN_SECRET"); v != "" {
-			s.AccessTokenSecret = v
-		} else {
-			return nil, errors.New("Environment variable TW_TOKEN_SECRET not set. Set variable or provide a credentials file (-f)")
-		}
-	} else {
-		file, err := os.Open(*f)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.NewDecoder(file).Decode(&s)
-		if err != nil {
-			return nil, err
-		}
+	if err = json.NewDecoder(file).Decode(&s); err != nil {
+		return s, fmt.Errorf("decode json file: %w", err)
 	}
 
 	return s, nil
 }
 
-func main() {
+func usage() string {
+	return `
+  ______   __     __    
+ /\__  _\ /\ \  _ \ \   
+ \/_/\ \/ \ \ \/ ".\ \  
+    \ \_\  \ \__/".~\_\ 
+     \/_/   \/_/   \/_/ 
+						
+  A minimal Twitter CLI
+	  
+  This application uses Oauthv1 to securely authenticate requests.
+  You can obtain API credentials from https://apps.twitter.com/.
+  Always handle secrets carefully!
 
-	// Flags
-	app := kingpin.New("tw", usage()).
-		Version(fmt.Sprintf("Version: %s\nCommit: %s\nBuild: %s", version, commit, date)).
-		DefaultEnvars().
-		ErrorWriter(os.Stderr).
-		UsageWriter(os.Stdout)
-
-	app.HelpFlag.Short('h')
-	app.VersionFlag.Short('v')
-	file := app.Flag("file", "Path to a JSON file containing auth credentials").Short('f').String()
-	pretty := app.Flag("pretty", "Pretty print instead of JSON (default: JSON)").Short('p').Bool()
-
-	// Sub-commands
-	likes := app.Command("likes", "Get your likes")
-
-	// Parse flags
-	command := kingpin.MustParse(app.Parse(os.Args[1:]))
-
-	// Set up credentials
-	c, err := newCreds(file)
-	if err != nil {
-		app.Fatalf("could not get credentials: %v", err)
-	}
-
-	anaconda.SetConsumerKey(c.ConsumerKey)
-	anaconda.SetConsumerSecret(c.ConsumerSecret)
-	api := anaconda.NewTwitterApi(c.AccessToken, c.AccessTokenSecret)
-
-	var searchResult []anaconda.Tweet
-
-	switch command {
-	case likes.FullCommand():
-		searchResult, err = getLikes(api, pretty)
-		if err != nil {
-			app.Fatalf("could not get tweets: %v", err)
-		}
-	}
-
-	if !*pretty {
-		b, err := json.Marshal(searchResult)
-		if err != nil {
-			app.Fatalf("could not encode data: %v", err)
-		}
-		fmt.Println(string(b))
-	} else {
-		for _, tweet := range searchResult {
-			fmt.Println("-----------------------")
-			fmt.Printf("From: %s\n", tweet.User.ScreenName)
-			fmt.Printf("Text: %q\n", tweet.Text)
-			for _, u := range tweet.Entities.Urls {
-				fmt.Printf("Link: %s\n", u.Expanded_url)
-			}
-
-		}
-	}
-
+  Example:
+  tw -f twitter_credentials.json likes
+`
 }
