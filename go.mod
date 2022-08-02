@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/ChimeraCoder/anaconda v2.0.0+incompatible
+	github.com/carlmjohnson/versioninfo v0.22.4
 	github.com/gernest/wow v0.1.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
