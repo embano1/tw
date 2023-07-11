@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -34,7 +34,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           # no push
-          args: release --rm-dist --snapshot
+          args: release --clean --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -54,6 +54,6 @@ jobs:
         with:
           name: dist
           path: |
-            dist/tw*x86_64*.tar.gz
+            dist/tw*.tar.gz
             dist/checksums.txt
           retention-days: 1

@@ -24,14 +24,14 @@ jobs:
           ref: "main"
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_TOKEN }}
 
@@ -52,7 +52,7 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
