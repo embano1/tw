@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,7 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/carlmjohnson/versioninfo"
@@ -32,7 +33,7 @@ func main() {
 
 	app.HelpFlag.Short('h')
 	app.VersionFlag.Short('v')
-	file := app.Flag("file", "Path to a JSON file containing auth credentials").Short('f').String()
+	file := app.Flag("file", "Path to a JSON file containing auth credentials (- for standard input)").Short('f').String()
 	pretty := app.Flag("pretty", "Pretty print instead of JSON (default: JSON)").Short('p').Bool()
 
 	// Sub-commands
@@ -131,12 +132,20 @@ func getLikes(a *anaconda.TwitterApi, pretty *bool) ([]anaconda.Tweet, error) {
 func readCredentials(f *string) (credentials, error) {
 	s := credentials{}
 
-	file, err := os.Open(*f)
-	if err != nil {
-		return s, fmt.Errorf("open file: %w", err)
+	var input io.Reader
+	if *f == "" {
+		// read credentials from standard input
+		input = bufio.NewReader(os.Stdin)
+	} else {
+		file, err := os.Open(*f)
+		if err != nil {
+			return s, fmt.Errorf("open file: %w", err)
+		}
+		defer file.Close()
+		input = file
 	}
 
-	if err = json.NewDecoder(file).Decode(&s); err != nil {
+	if err := json.NewDecoder(input).Decode(&s); err != nil {
 		return s, fmt.Errorf("decode json file: %w", err)
 	}
 
